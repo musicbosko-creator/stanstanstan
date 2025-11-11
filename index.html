@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A brief description of your webpage">
+    <title>stanstanstan</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='white' stroke='white' stroke-width='2'/></svg>">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+            will-change: background-color, box-shadow;
+        }
+
+        body.playing {
+            animation: glowFadeIn 2s ease-in forwards, backgroundGlow 32s 2s infinite ease-in-out;
+            box-shadow: inset 0 0 150px rgba(180, 180, 180, 0.4),
+                        inset 150px 120px 200px rgba(180, 180, 180, 0.15);
+        }
+
+        body.played:not(.playing) {
+            animation: glowFadeOut 4s ease-out forwards;
+        }
+
+        @keyframes glowFadeIn {
+            0% {
+                box-shadow: inset 0 0 150px rgba(180, 180, 180, 0),
+                            inset 150px 120px 200px rgba(180, 180, 180, 0) !important;
+            }
+            100% {
+                box-shadow: inset 0 0 150px rgba(180, 180, 180, 0.4),
+                            inset 150px 120px 200px rgba(180, 180, 180, 0.15) !important;
+            }
+        }
+
+        @keyframes glowFadeOut {
+            0% {
+                box-shadow: inset 0 0 150px rgba(180, 180, 180, 0.4),
+                            inset 150px 120px 200px rgba(180, 180, 180, 0.15);
+            }
+            100% {
+                box-shadow: inset 0 0 150px rgba(180, 180, 180, 0),
+                            inset 150px 120px 200px rgba(180, 180, 180, 0);
+            }
+        }
+
+        @keyframes backgroundGlow {
+            0%, 100% { 
+                background-color: #000;
+                box-shadow: inset 0 0 150px rgba(180, 180, 180, 0.4),
+                            inset 150px 120px 200px rgba(180, 180, 180, 0.15);
+            }
+            12% { 
+                background-color: #0a0a0a;
+                box-shadow: inset 0 0 280px rgba(190, 190, 190, 0.5),
+                            inset 170px 60px 270px rgba(190, 190, 190, 0.2);
+            }
+            25% { 
+                background-color: #0f0f0f;
+                box-shadow: inset 0 0 450px rgba(210, 210, 210, 0.65),
+                            inset 40px 160px 340px rgba(210, 210, 210, 0.25);
+            }
+            37% { 
+                background-color: #121212;
+                box-shadow: inset 0 0 600px rgba(220, 220, 220, 0.72),
+                            inset -130px 130px 360px rgba(220, 220, 220, 0.28);
+            }
+            50% { 
+                background-color: #151515;
+                box-shadow: inset 0 0 750px rgba(230, 230, 230, 0.8),
+                            inset 0 0 350px rgba(230, 230, 230, 0.35);
+            }
+            63% { 
+                background-color: #121212;
+                box-shadow: inset 0 0 600px rgba(220, 220, 220, 0.72),
+                            inset 130px -130px 360px rgba(220, 220, 220, 0.28);
+            }
+            75% { 
+                background-color: #0f0f0f;
+                box-shadow: inset 0 0 450px rgba(210, 210, 210, 0.65),
+                            inset -40px -160px 340px rgba(210, 210, 210, 0.25);
+            }
+            88% { 
+                background-color: #0a0a0a;
+                box-shadow: inset 0 0 280px rgba(190, 190, 190, 0.5),
+                            inset -170px -60px 270px rgba(190, 190, 190, 0.2);
+            }
+        }
+
+        .number {
+            position: fixed;
+            font-size: 1em;
+            pointer-events: none;
+            z-index: 15;
+            will-change: transform;
+            color: white;
+        }
+
+        .number.hidden {    
+            display: none;
+        }
+
+        .number.underneath {
+            z-index: 5;
+        }
+
+        @keyframes numberGlow {
+            0%, 100% { filter: drop-shadow(0 0 40px rgba(200, 200, 200, 0.5)); }
+            50% { filter: drop-shadow(0 0 80px rgba(150, 150, 150, 0.6)); }
+        }
+
+        .number.emerging {
+            animation: emerge 3s ease-out forwards;
+        }
+
+        @keyframes emerge {
+            0% {
+                opacity: 0;
+                transform: translate(var(--start-x), var(--start-y)) scale(0.5);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(var(--pos-x), var(--pos-y)) scale(1);
+            }
+        }
+
+        .number.playing {
+            animation: numberGlow 6s infinite;
+            z-index: 15;
+        }
+
+        .background-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16%;
+            height: auto;
+            z-index: 100;
+            cursor: pointer;
+            will-change: filter;
+        }
+
+        @keyframes imageGlow {
+            0%, 100% { filter: drop-shadow(0 0 50px rgba(220, 220, 220, 0.4)) drop-shadow(0 0 100px rgba(200, 200, 200, 0.3)); }
+            12% { filter: drop-shadow(0 0 90px rgba(230, 230, 230, 0.5)) drop-shadow(0 0 170px rgba(210, 210, 210, 0.35)); }
+            25% { filter: drop-shadow(0 0 140px rgba(240, 240, 240, 0.6)) drop-shadow(0 0 240px rgba(220, 220, 220, 0.45)); }
+            37% { filter: drop-shadow(0 0 180px rgba(245, 245, 245, 0.7)) drop-shadow(0 0 300px rgba(230, 230, 230, 0.55)); }
+            50% { filter: drop-shadow(0 0 220px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 360px rgba(245, 245, 245, 0.65)); }
+            63% { filter: drop-shadow(0 0 180px rgba(245, 245, 245, 0.7)) drop-shadow(0 0 300px rgba(230, 230, 230, 0.55)); }
+            75% { filter: drop-shadow(0 0 140px rgba(240, 240, 240, 0.6)) drop-shadow(0 0 240px rgba(220, 220, 220, 0.45)); }
+            88% { filter: drop-shadow(0 0 90px rgba(230, 230, 230, 0.5)) drop-shadow(0 0 170px rgba(210, 210, 210, 0.35)); }
+        }
+
+        @keyframes imageGlowFadeIn {
+            0% { filter: drop-shadow(0 0 50px rgba(220, 220, 220, 0)) drop-shadow(0 0 100px rgba(200, 200, 200, 0)); }
+            100% { filter: drop-shadow(0 0 50px rgba(220, 220, 220, 0.4)) drop-shadow(0 0 100px rgba(200, 200, 200, 0.3)); }
+        }
+
+        @keyframes imageGlowFadeOut {
+            0% { filter: drop-shadow(0 0 50px rgba(220, 220, 220, 0.4)) drop-shadow(0 0 100px rgba(200, 200, 200, 0.3)); }
+            50% { filter: drop-shadow(0 0 25px rgba(220, 220, 220, 0.2)) drop-shadow(0 0 50px rgba(200, 200, 200, 0.15)); }
+            100% { filter: drop-shadow(0 0 50px rgba(220, 220, 220, 0)) drop-shadow(0 0 100px rgba(200, 200, 200, 0)); }
+        }
+
+        .background-image.playing {
+            animation: imageGlowFadeIn 2s ease-in forwards, imageGlow 32s 2s infinite ease-in-out;
+            filter: drop-shadow(0 0 50px rgba(220, 220, 220, 0.4)) drop-shadow(0 0 100px rgba(200, 200, 200, 0.3));
+        }
+
+        .background-image:not(.playing) {
+            animation: imageGlowFadeOut 4s ease-out forwards;
+        }
+
+        .time-display {
+            position: absolute;
+            top: 80%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-left: 10px solid white;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            animation: playerglow 1.5s infinite ease-in-out;
+            cursor: pointer;
+        }
+
+        .play-icon.playing {
+            width: 8px;
+            height: 12px;
+            border-left: none;
+            border-top: none;
+            border-bottom: none;
+            box-shadow: inset 2px 0 0 white, inset -2px 0 0 white;
+        }
+
+        @keyframes playerglow {
+            0%, 100% { filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.7)); scale: 1; }
+            50% { filter: drop-shadow(0 0 120px rgba(255, 255, 255, 0.9)); scale: 1.1; }
+        }
+
+        .progress-line {
+            width: 300px;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 1px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        @keyframes progressGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 40px rgba(200, 200, 200, 0.2); }
+            25% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.5), 0 0 80px rgba(220, 220, 220, 0.35); }
+            50% { box-shadow: 0 0 60px rgba(255, 255, 255, 0.7), 0 0 120px rgba(240, 240, 240, 0.5); }
+            75% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.5), 0 0 80px rgba(220, 220, 220, 0.35); }
+        }
+
+        .time-display.playing .progress-line {
+            animation: progressGlow 4s infinite ease-in-out;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .progress-dot {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            z-index: 101;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="background-audio" src="stan1.mp3" loop></audio>
+    <img src="101_2256.JPG" class="background-image" id="clickable-image">
+    <div class="time-display">
+        <div class="play-icon"></div>
+        <div class="progress-line">
+            <div class="progress-dot" id="progress-dot"></div>
+        </div>
+    </div>
+    
+    <script>
+        const nums = [];
+        let isPlaying = false;
+        let numbersCreated = false;
+        let playStartTime = 0;
+        const maxNumbers = 100;
+        const FRAME_SKIP = 2;
+        let frameCount = 0;
+        let lastProgressUpdate = 0;
+        let mouseX = 0;
+        let mouseY = 0;
+        let noiseOffset = 0;
+        const BOX_SHADOW_DELAY = 5000;
+
+        let spotlightX = window.innerWidth / 2;
+        let spotlightY = window.innerHeight / 2;
+        let spotlightVX = Math.random() * 2 - 1;
+        let spotlightVY = Math.random() * 2 - 1;
+        const spotlightSpeed = 1.5;
+
+        function addNumber() {
+            const num = document.createElement("div");
+            num.innerText = "1";
+            num.classList.add("number");
+
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+
+            const imageRect = image.getBoundingClientRect();
+            const imageCenterX = imageRect.left + imageRect.width / 2;
+            const imageCenterY = imageRect.top + imageRect.height / 2;
+
+            nums.push({
+                element: num,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                x, y,
+                startX: imageCenterX,
+                startY: imageCenterY
+            });
+            num.style.setProperty('--start-x', `${imageCenterX}px`);
+            num.style.setProperty('--start-y', `${imageCenterY}px`);
+            num.style.setProperty('--pos-x', `${x}px`);
+            num.style.setProperty('--pos-y', `${y}px`);
+            num.style.transform = `translate(${imageCenterX}px, ${imageCenterY}px)`;
+            document.body.appendChild(num);
+        }
+
+        function computeForces() {
+            const len = nums.length;
+            const imageRect = image.getBoundingClientRect();
+            const imageCenterX = imageRect.left + imageRect.width / 2;
+            const imageCenterY = imageRect.top + imageRect.height / 2;
+
+            for (let i = 0; i < len; i++) {
+                const b = nums[i];
+                let sx = 0, sy = 0, sc = 0;
+                let ax = 0, ay = 0, ac = 0;
+                let cx = 0, cy = 0, cc = 0;
+
+                for (let j = 0; j < len; j++) {
+                    if (i === j) continue;
+                    const o = nums[j];
+                    const dx = o.x - b.x;
+                    const dy = o.y - b.y;
+                    const d2 = dx * dx + dy * dy;
+
+                    if (d2 < 900 && d2 > 0) {
+                        sx -= dx;
+                        sy -= dy;
+                        sc++;
+                    }
+                    if (d2 < 2500) {
+                        ax += o.vx;
+                        ay += o.vy;
+                        ac++;
+                    }
+                    if (d2 < 4900) {
+                        cx += o.x;
+                        cy += o.y;
+                        cc++;
+                    }
+                }
+
+                if (sc > 0) {
+                    b.vx += sx / sc * 0.018;
+                    b.vy += sy / sc * 0.018;
+                }
+                if (ac > 0) {
+                    b.vx += (ax / ac - b.vx) * 0.012;
+                    b.vy += (ay / ac - b.vy) * 0.012;
+                }
+                if (cc > 0) {
+                    b.vx += (cx / cc - b.x) * 0.0002;
+                    b.vy += (cy / cc - b.y) * 0.0002;
+                }
+
+                if (!isPlaying) {
+                    const idX = imageCenterX - b.x;
+                    const idY = imageCenterY - b.y;
+                    const id2 = idX * idX + idY * idY;
+                    if (id2 > 0) {
+                        const id = Math.sqrt(id2);
+                        b.vx += (idX / id) * 0.5;
+                        b.vy += (idY / id) * 0.5;
+                    }
+                }
+
+                const mdx = b.x - mouseX;
+                const mdy = b.y - mouseY;
+                const md2 = mdx * mdx + mdy * mdy;
+                if (md2 < 40000 && md2 > 0) {
+                    const md = Math.sqrt(md2);
+                    b.vx += (mdx / md) * 1.2;
+                    b.vy += (mdy / md) * 1.2;
+                }
+
+                b.vx += (Math.random() - 0.5) * 0.012;
+                b.vy += (Math.random() - 0.5) * 0.012;
+
+                const s2 = b.vx * b.vx + b.vy * b.vy;
+                if (s2 > 25) {
+                    const s = Math.sqrt(s2);
+                    b.vx = b.vx / s * 5;
+                    b.vy = b.vy / s * 5;
+                }
+            }
+        }
+
+        function integrateAndRender() {
+            const len = nums.length;
+            for (let i = 0; i < len; i++) {
+                const b = nums[i];
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.x > window.innerWidth + 50) b.x = -50;
+                else if (b.x < -50) b.x = window.innerWidth + 50;
+                if (b.y > window.innerHeight + 50) b.y = -50;
+                else if (b.y < -50) b.y = window.innerHeight + 50;
+
+                b.element.style.transform = `translate(${b.x|0}px, ${b.y|0}px)`;
+            }
+        }
+
+        function updateProgressDot() {
+            const now = Date.now();
+            if (now - lastProgressUpdate < 100) return;
+            lastProgressUpdate = now;
+            
+            const dot = document.getElementById("progress-dot");
+            if (!dot || !audio.duration) return;
+            dot.style.left = `${(audio.currentTime / audio.duration) * 100}%`;
+        }
+
+        function togglePlayback() {
+            isPlaying = !isPlaying;
+            const playIcon = document.querySelector(".play-icon");
+            const timeDisplay = document.querySelector(".time-display");
+            
+            if (isPlaying) {
+                audio.play();
+                playStartTime = Date.now();
+                document.body.classList.add("playing");
+                document.body.classList.add("played");
+                image.classList.add("playing");
+                playIcon.classList.add("playing");
+                timeDisplay.classList.add("playing");
+                if (!numbersCreated) {
+                    const imageRect = image.getBoundingClientRect();
+                    const imageCenterX = imageRect.left + imageRect.width / 2;
+                    const imageCenterY = imageRect.top + imageRect.height / 2;
+                    
+                    for (let i = 0; i < 100; i++) {
+                        addNumber();
+                        nums[i].x = imageCenterX;
+                        nums[i].y = imageCenterY;
+                        nums[i].element.style.transform = `translate(${imageCenterX}px, ${imageCenterY}px)`;
+                    }
+                    numbersCreated = true;
+                    nums.forEach(n => {
+                        n.element.classList.add("playing");
+                        n.element.classList.add("emerging");
+                    });
+                } else {
+                    nums.forEach(n => {
+                        n.element.classList.remove("hidden");
+                        n.element.classList.remove("underneath");
+                        n.element.classList.add("playing");
+                    });
+                }
+            } else {
+                audio.pause();
+                document.body.classList.remove("playing");
+                document.body.style.boxShadow = "none";
+                image.classList.remove("playing");
+                playIcon.classList.remove("playing");
+                timeDisplay.classList.remove("playing");
+                nums.forEach(n => {
+                    n.element.classList.remove("playing");
+                    n.element.classList.remove("emerging");
+                    n.element.classList.add("underneath");
+                });
+            }
+        }
+
+        function getNoiseValue(time) {
+            return Math.sin(time * 0.5) * 0.3 + 
+                   Math.sin(time * 0.3) * 0.25 + 
+                   Math.sin(time * 0.7) * 0.2;
+        }
+
+        function updateSpotlight() {
+            spotlightX += spotlightVX * spotlightSpeed;
+            spotlightY += spotlightVY * spotlightSpeed;
+
+            if (spotlightX < 0 || spotlightX > window.innerWidth) spotlightVX *= -1;
+            if (spotlightY < 0 || spotlightY > window.innerHeight) spotlightVY *= -1;
+
+            spotlightX = Math.max(0, Math.min(spotlightX, window.innerWidth));
+            spotlightY = Math.max(0, Math.min(spotlightY, window.innerHeight));
+
+            if (Math.random() < 0.02) {
+                spotlightVX += (Math.random() - 0.5) * 0.5;
+                spotlightVY += (Math.random() - 0.5) * 0.5;
+                const speed = Math.sqrt(spotlightVX * spotlightVX + spotlightVY * spotlightVY);
+                if (speed > 0) {
+                    spotlightVX = (spotlightVX / speed) * spotlightSpeed;
+                    spotlightVY = (spotlightVY / speed) * spotlightSpeed;
+                }
+            }
+        }
+
+        function updateBackgroundShadow() {
+            if (!document.body.classList.contains("playing")) return;
+
+            const elapsedTime = Date.now() - playStartTime;
+            if (elapsedTime < BOX_SHADOW_DELAY) return;
+
+            noiseOffset += 0.02;
+            const noise = getNoiseValue(noiseOffset);
+            
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            const dx = spotlightX - centerX;
+            const dy = spotlightY - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+            const normalizedDistance = Math.min(distance / maxDistance, 1);
+            
+            const angle = Math.atan2(dy, dx);
+            
+            const spotlightOffsetX = Math.cos(angle + Math.PI) * normalizedDistance * 300;
+            const spotlightOffsetY = Math.sin(angle + Math.PI) * normalizedDistance * 240;
+            
+            const mouseDx = mouseX - centerX;
+            const mouseDy = mouseY - centerY;
+            const mouseDistance = Math.sqrt(mouseDx * mouseDx + mouseDy * mouseDy);
+            const normalizedMouseDistance = Math.min(mouseDistance / maxDistance, 1);
+            const mouseAngle = Math.atan2(mouseDy, mouseDx);
+            
+            const mouseOffsetX = Math.cos(mouseAngle + Math.PI) * normalizedMouseDistance * 200;
+            const mouseOffsetY = Math.sin(mouseAngle + Math.PI) * normalizedMouseDistance * 160;
+            
+            const offsetX = (Math.sin(noiseOffset) * 80 * (1 + noise)) + spotlightOffsetX + mouseOffsetX;
+            const offsetY = (Math.cos(noiseOffset * 0.7) * 60 * (1 + noise)) + spotlightOffsetY + mouseOffsetY;
+            const blurVar = Math.abs(noise) * 150;
+            
+            const blurInfluence = (normalizedDistance + normalizedMouseDistance * 0.5) * 250;
+            const opacityBase1 = 0.3 + Math.abs(noise) * 0.2 + (normalizedDistance + normalizedMouseDistance * 0.3) * 0.35;
+            const opacityBase2 = 0.2 + Math.abs(noise) * 0.15 + (normalizedDistance + normalizedMouseDistance * 0.2) * 0.3;
+            
+            document.body.style.boxShadow = 
+                `inset ${offsetX}px ${offsetY}px ${150 + blurVar + blurInfluence}px rgba(180, 180, 180, ${opacityBase1}),
+                 inset ${-offsetX * 0.5}px ${offsetY * 0.6}px ${120 + blurVar * 0.7 + blurInfluence * 0.5}px rgba(200, 200, 200, ${opacityBase2})`;
+        }
+
+        const audio = document.getElementById("background-audio");
+        const image = document.getElementById("clickable-image");
+
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Space") {
+                e.preventDefault();
+                togglePlayback();
+            }
+        });
+
+        document.querySelector(".play-icon").addEventListener("click", togglePlayback);
+        image.addEventListener("click", togglePlayback);
+
+        document.querySelector(".progress-line").addEventListener("click", (e) => {
+            if (!audio.duration) return;
+            const pct = (e.clientX - e.target.getBoundingClientRect().left) / 300;
+            audio.currentTime = pct * audio.duration;
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function loop() {
+            if (nums.length) {
+                frameCount++;
+                if (frameCount % FRAME_SKIP === 0) computeForces();
+                integrateAndRender();
+            }
+            updateProgressDot();
+            if (isPlaying) {
+                updateSpotlight();
+            }
+            updateBackgroundShadow();
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+        setInterval(() => {
+            if (!isPlaying) return;
+            if (Math.random() < 0.15 && nums.length < maxNumbers) addNumber();
+            else if (Math.random() > 0.9 && nums.length > 70) {
+                const r = nums.pop();
+                r?.element.remove();
+            }
+        }, 12000);
+    </script>
+</body>
+</html>
